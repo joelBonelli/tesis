@@ -7,3 +7,105 @@ datasource db {
   provider = "postgresql"
 }
 
+model Usuario {
+  id              Int       @id @default(autoincrement())
+  nombre          String    @db.VarChar(60)
+  apellido        String    @db.VarChar(80)
+  email           String    @unique @db.VarChar(120)
+  passwordHash    String    @db.VarChar(255)
+  telefono        String?   @db.VarChar(30)
+  fechaNacimiento DateTime? @db.Date
+  fechaRegistro   DateTime  @default(now())
+  estaActivo      Boolean   @default(true)
+  estaVerificado  Boolean   @default(false)
+
+  roles            UsuarioRol[]
+  perfilTrabajador PerfilTrabajador?
+  sponsors         UsuarioSponsor[]
+}
+
+model Rol {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique @db.VarChar(40)
+  descripcion String? @db.VarChar(150)
+
+  usuarios UsuarioRol[]
+}
+
+model UsuarioRol {
+  usuarioId Int
+  rolId     Int
+  fechaAlta DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, rolId])
+}
+
+model PerfilTrabajador {
+  id                 Int      @id @default(autoincrement())
+  usuarioId          Int      @unique
+  tituloProfesional  String?  @db.VarChar(100)
+  descripcion        String?
+  zonaTrabajo        String?  @db.VarChar(120)
+  aniosExperiencia   Int?
+  calificacion       Decimal  @default(0) @db.Decimal(3, 2)
+  trabajosRealizados Int      @default(0)
+  disponible         Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  patrocinios Patrocinio[]
+}
+
+model Sponsor {
+  id             Int      @id @default(autoincrement())
+  razonSocial    String   @db.VarChar(120)
+  nombreFantasia String   @db.VarChar(120)
+  cuit           String   @unique @db.VarChar(20)
+  email          String   @db.VarChar(120)
+  telefono       String?  @db.VarChar(30)
+  direccion      String?  @db.VarChar(180)
+  descripcion    String?
+  logoUrl        String?
+  fechaRegistro  DateTime @default(now())
+  estaActivo     Boolean  @default(true)
+  estaVerificado Boolean  @default(false)
+
+  administradores UsuarioSponsor[]
+  patrocinios     Patrocinio[]
+}
+
+model UsuarioSponsor {
+  usuarioId Int
+  sponsorId Int
+  fechaAlta DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  sponsor Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, sponsorId])
+}
+
+model Patrocinio {
+  id                 Int              @id @default(autoincrement())
+  sponsorId          Int
+  perfilTrabajadorId Int
+  estado             EstadoPatrocinio @default(PENDIENTE)
+  fechaSolicitud     DateTime         @default(now())
+  fechaResolucion    DateTime?
+  observacion        String?
+  estaActivo         Boolean          @default(true)
+
+  sponsor          Sponsor          @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  perfilTrabajador PerfilTrabajador @relation(fields: [perfilTrabajadorId], references: [id], onDelete: Cascade)
+
+  @@unique([sponsorId, perfilTrabajadorId])
+}
+
+enum EstadoPatrocinio {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
