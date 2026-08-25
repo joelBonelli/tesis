@@ -5,6 +5,9 @@ import {
   obtenerMiPerfilTrabajador,
   actualizarMiPerfilTrabajador,
   pruebaTrabajador,
+  obtenerTrabajadorPorId,
+  asignarCategoriasMiPerfil,
+  obtenerCategoriasMiPerfil,
 } from "../controllers/trabajadores.controller.js";
 
 import { autenticar } from "../middlewares/autenticacion.js";
@@ -39,5 +42,25 @@ router.get(
   autorizarRoles("TRABAJADOR"),
   pruebaTrabajador
 );
+
+router.get(
+  "/trabajadores/:id",
+  obtenerTrabajadorPorId
+);
+
+router.post(
+  "/mi-perfil-trabajador/categorias",
+  autenticar,
+  autorizarRoles("TRABAJADOR"),
+  asignarCategoriasMiPerfil
+);
+
+router.get(
+  "/mi-perfil-trabajador/categorias",
+  autenticar,
+  autorizarRoles("TRABAJADOR"),
+  obtenerCategoriasMiPerfil
+);
+
 
 export default router;

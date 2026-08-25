@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
   runtime                = "nodejs"
   moduleFormat           = "esm"
   generatedFileExtension = "ts"
@@ -59,8 +59,9 @@ model PerfilTrabajador {
   disponible         Boolean  @default(true)
   fechaCreacion      DateTime @default(now())
 
-  usuario     Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario     Usuario                     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   patrocinios Patrocinio[]
+  categorias  PerfilTrabajadorCategoria[]
 }
 
 model Sponsor {
@@ -106,6 +107,25 @@ model Patrocinio {
   perfilTrabajador PerfilTrabajador @relation(fields: [perfilTrabajadorId], references: [id], onDelete: Cascade)
 
   @@unique([sponsorId, perfilTrabajadorId])
+}
+
+model Categoria {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique @db.VarChar(80)
+  descripcion String?
+  estaActiva  Boolean @default(true)
+
+  trabajadores PerfilTrabajadorCategoria[]
+}
+
+model PerfilTrabajadorCategoria {
+  perfilTrabajadorId Int
+  categoriaId        Int
+
+  perfilTrabajador PerfilTrabajador @relation(fields: [perfilTrabajadorId], references: [id], onDelete: Cascade)
+  categoria        Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([perfilTrabajadorId, categoriaId])
 }
 
 enum EstadoPatrocinio {
