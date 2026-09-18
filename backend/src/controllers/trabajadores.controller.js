@@ -231,12 +231,38 @@ export async function obtenerTrabajadorPorId(req, res) {
         trabajosRealizados: true,
         disponible: true,
         fechaCreacion: true,
+
         usuario: {
           select: {
             id: true,
             nombre: true,
             apellido: true,
             estaVerificado: true,
+          },
+        },
+
+        patrocinios: {
+          where: {
+            estado: "APROBADO",
+            estaActivo: true,
+            sponsor: {
+              estaActivo: true,
+            },
+          },
+          select: {
+            id: true,
+            fechaResolucion: true,
+            observacion: true,
+
+            sponsor: {
+              select: {
+                id: true,
+                nombreFantasia: true,
+                descripcion: true,
+                logoUrl: true,
+                estaVerificado: true,
+              },
+            },
           },
         },
       },
@@ -393,6 +419,115 @@ export async function obtenerCategoriasMiPerfil(req, res) {
 
     res.status(500).json({
       message: "Error al obtener las categorías",
+    });
+  }
+}
+
+
+export async function obtenerCalificacionesTrabajador(req, res) {
+  try {
+    const usuarioId = Number(req.params.id);
+
+    if (!Number.isInteger(usuarioId)) {
+      return res.status(400).json({
+        message: "El ID del trabajador no es válido",
+      });
+    }
+
+    const perfil = await prisma.perfilTrabajador.findUnique({
+      where: {
+        usuarioId,
+      },
+      select: {
+        id: true,
+        calificacion: true,
+        trabajosRealizados: true,
+
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+          },
+        },
+
+        calificaciones: {
+          select: {
+            id: true,
+            puntuacion: true,
+            comentario: true,
+            fechaCreacion: true,
+
+            contratacion: {
+              select: {
+                solicitud: {
+                  select: {
+                    titulo: true,
+                    categoria: {
+                      select: {
+                        nombre: true,
+                      },
+                    },
+                    cliente: {
+                      select: {
+                        nombre: true,
+                        apellido: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+
+          orderBy: {
+            fechaCreacion: "desc",
+          },
+        },
+      },
+    });
+
+    if (!perfil) {
+      return res.status(404).json({
+        message: "Trabajador no encontrado",
+      });
+    }
+
+    const calificaciones = perfil.calificaciones.map((item) => ({
+      id: item.id,
+      puntuacion: item.puntuacion,
+      comentario: item.comentario,
+      fechaCreacion: item.fechaCreacion,
+
+      servicio: {
+        titulo: item.contratacion.solicitud.titulo,
+        categoria: item.contratacion.solicitud.categoria.nombre,
+      },
+
+      cliente: {
+        nombre: item.contratacion.solicitud.cliente.nombre,
+        apellido: item.contratacion.solicitud.cliente.apellido,
+      },
+    }));
+
+    res.json({
+      trabajador: {
+        id: perfil.usuario.id,
+        nombre: perfil.usuario.nombre,
+        apellido: perfil.usuario.apellido,
+        calificacion: perfil.calificacion,
+        trabajosRealizados: perfil.trabajosRealizados,
+      },
+
+      cantidadCalificaciones: calificaciones.length,
+
+      calificaciones,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al obtener las calificaciones del trabajador",
     });
   }
 }

@@ -8,6 +8,7 @@ import {
   obtenerTrabajadorPorId,
   asignarCategoriasMiPerfil,
   obtenerCategoriasMiPerfil,
+  obtenerCalificacionesTrabajador,
 } from "../controllers/trabajadores.controller.js";
 
 import { autenticar } from "../middlewares/autenticacion.js";
@@ -62,5 +63,10 @@ router.get(
   obtenerCategoriasMiPerfil
 );
 
+
+router.get(
+  "/trabajadores/:id/calificaciones",
+  obtenerCalificacionesTrabajador
+);
 
 export default router;

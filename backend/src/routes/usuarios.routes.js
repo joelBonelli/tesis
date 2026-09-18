@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { autenticar } from "../middlewares/autenticacion.js";
+import { autorizarRoles } from "../middlewares/autorizacion.js";
 
 import {
     listarUsuarios,
@@ -10,12 +12,34 @@ import {
 
 const router = Router();
 
-router.get("/", listarUsuarios);
+router.get(
+  "/",
+  autenticar,
+  autorizarRoles("ADMINISTRADOR"),
+  listarUsuarios
+);
+
 router.post("/", crearUsuario);
 
-router.get("/:id/roles", obtenerRolesUsuario);
-router.post("/:id/roles", asignarRolUsuario);
+router.get(
+  "/:id/roles",
+  autenticar,
+  autorizarRoles("ADMINISTRADOR"),
+  obtenerRolesUsuario
+);
 
-router.get("/:id", obtenerUsuarioPorId);
+router.post(
+  "/:id/roles",
+  autenticar,
+  autorizarRoles("ADMINISTRADOR"),
+  asignarRolUsuario
+);
+
+router.get(
+  "/:id",
+  autenticar,
+  autorizarRoles("ADMINISTRADOR"),
+  obtenerUsuarioPorId
+);
 
 export default router;

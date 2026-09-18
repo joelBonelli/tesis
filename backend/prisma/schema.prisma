@@ -23,9 +23,12 @@ model Usuario {
   estaActivo      Boolean   @default(true)
   estaVerificado  Boolean   @default(false)
 
-  roles            UsuarioRol[]
-  perfilTrabajador PerfilTrabajador?
-  sponsors         UsuarioSponsor[]
+  roles               UsuarioRol[]
+  perfilTrabajador    PerfilTrabajador?
+  sponsors            UsuarioSponsor[]
+  solicitudesServicio SolicitudServicio[]
+  mensajesEnviados    Mensaje[]
+  notificaciones      Notificacion[]
 }
 
 model Rol {
@@ -59,9 +62,11 @@ model PerfilTrabajador {
   disponible         Boolean  @default(true)
   fechaCreacion      DateTime @default(now())
 
-  usuario     Usuario                     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  patrocinios Patrocinio[]
-  categorias  PerfilTrabajadorCategoria[]
+  usuario        Usuario                     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  patrocinios    Patrocinio[]
+  categorias     PerfilTrabajadorCategoria[]
+  propuestas     PropuestaServicio[]
+  calificaciones CalificacionServicio[]
 }
 
 model Sponsor {
@@ -116,6 +121,7 @@ model Categoria {
   estaActiva  Boolean @default(true)
 
   trabajadores PerfilTrabajadorCategoria[]
+  solicitudes  SolicitudServicio[]
 }
 
 model PerfilTrabajadorCategoria {
@@ -128,8 +134,132 @@ model PerfilTrabajadorCategoria {
   @@id([perfilTrabajadorId, categoriaId])
 }
 
+model SolicitudServicio {
+  id            Int             @id @default(autoincrement())
+  clienteId     Int
+  categoriaId   Int
+  titulo        String          @db.VarChar(120)
+  descripcion   String
+  zona          String?         @db.VarChar(120)
+  fechaCreacion DateTime        @default(now())
+  estado        EstadoSolicitud @default(PUBLICADA)
+  contratacion  Contratacion?
+
+  cliente    Usuario             @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  categoria  Categoria           @relation(fields: [categoriaId], references: [id])
+  propuestas PropuestaServicio[]
+}
+
+model PropuestaServicio {
+  id                 Int             @id @default(autoincrement())
+  solicitudId        Int
+  perfilTrabajadorId Int
+  monto              Decimal         @db.Decimal(12, 2)
+  mensaje            String?
+  diasEstimados      Int?
+  fechaCreacion      DateTime        @default(now())
+  estado             EstadoPropuesta @default(PENDIENTE)
+  contratacion       Contratacion?
+
+  solicitud        SolicitudServicio @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+  perfilTrabajador PerfilTrabajador  @relation(fields: [perfilTrabajadorId], references: [id], onDelete: Cascade)
+
+  @@unique([solicitudId, perfilTrabajadorId])
+}
+
+model Contratacion {
+  id                Int                @id @default(autoincrement())
+  solicitudId       Int                @unique
+  propuestaId       Int                @unique
+  montoAcordado     Decimal            @db.Decimal(12, 2)
+  fechaContratacion DateTime           @default(now())
+  fechaFinalizacion DateTime?
+  estado            EstadoContratacion @default(EN_PROCESO)
+
+  solicitud    SolicitudServicio     @relation(fields: [solicitudId], references: [id])
+  propuesta    PropuestaServicio     @relation(fields: [propuestaId], references: [id])
+  calificacion CalificacionServicio?
+  conversacion Conversacion?
+}
+
+model CalificacionServicio {
+  id                 Int      @id @default(autoincrement())
+  contratacionId     Int      @unique
+  perfilTrabajadorId Int
+  puntuacion         Int
+  comentario         String?
+  fechaCreacion      DateTime @default(now())
+
+  contratacion     Contratacion     @relation(fields: [contratacionId], references: [id], onDelete: Cascade)
+  perfilTrabajador PerfilTrabajador @relation(fields: [perfilTrabajadorId], references: [id], onDelete: Cascade)
+}
+
+model Conversacion {
+  id             Int      @id @default(autoincrement())
+  contratacionId Int      @unique
+  fechaCreacion  DateTime @default(now())
+
+  contratacion Contratacion @relation(fields: [contratacionId], references: [id], onDelete: Cascade)
+  mensajes     Mensaje[]
+}
+
+model Mensaje {
+  id             Int      @id @default(autoincrement())
+  conversacionId Int
+  remitenteId    Int
+  contenido      String   @db.VarChar(2000)
+  fechaEnvio     DateTime @default(now())
+  leido          Boolean  @default(false)
+
+  conversacion Conversacion @relation(fields: [conversacionId], references: [id], onDelete: Cascade)
+  remitente    Usuario      @relation(fields: [remitenteId], references: [id])
+}
+
+model Notificacion {
+  id            Int              @id @default(autoincrement())
+  usuarioId     Int
+  tipo          TipoNotificacion
+  titulo        String           @db.VarChar(150)
+  mensaje       String           @db.VarChar(500)
+  referenciaId  Int?
+  leida         Boolean          @default(false)
+  fechaCreacion DateTime         @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
 enum EstadoPatrocinio {
   PENDIENTE
   APROBADO
   RECHAZADO
+}
+
+enum EstadoSolicitud {
+  PUBLICADA
+  EN_PROCESO
+  FINALIZADA
+  CANCELADA
+}
+
+enum EstadoPropuesta {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  RETIRADA
+}
+
+enum EstadoContratacion {
+  EN_PROCESO
+  FINALIZADA
+  CANCELADA
+}
+
+enum TipoNotificacion {
+  PROPUESTA_RECIBIDA
+  PROPUESTA_ACEPTADA
+  PROPUESTA_RECHAZADA
+  NUEVO_MENSAJE
+  PATROCINIO_SOLICITADO
+  PATROCINIO_APROBADO
+  PATROCINIO_RECHAZADO
 }
