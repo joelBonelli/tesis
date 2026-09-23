@@ -1,6 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
+import crypto from "crypto";
+
+
 
 export async function login(req, res) {
     try {
@@ -45,6 +48,12 @@ export async function login(req, res) {
         if (!passwordValida) {
             return res.status(401).json({
                 message: "Email o contraseña incorrectos",
+            });
+        }
+
+        if (!usuario.estaVerificado) {
+            return res.status(403).json({
+                message: "Debe verificar su correo electrónico antes de iniciar sesión",
             });
         }
 
@@ -128,6 +137,81 @@ export async function obtenerPerfil(req, res) {
 
         res.status(500).json({
             message: "Error al obtener el perfil",
+        });
+    }
+}
+
+
+export async function verificarEmail(req, res) {
+    try {
+        const { token } = req.body ?? {};
+
+        if (!token) {
+            return res.status(400).json({
+                message: "Token de verificación requerido",
+            });
+        }
+
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const verificacion = await prisma.verificacionEmail.findUnique({
+            where: {
+                tokenHash,
+            },
+            include: {
+                usuario: true,
+            },
+        });
+
+        if (!verificacion) {
+            return res.status(400).json({
+                message: "Token de verificación inválido",
+            });
+        }
+
+        if (verificacion.utilizado) {
+            return res.status(400).json({
+                message: "El enlace de verificación ya fue utilizado",
+            });
+        }
+
+        if (verificacion.fechaExpiracion < new Date()) {
+            return res.status(400).json({
+                message: "El enlace de verificación ha vencido",
+            });
+        }
+
+        await prisma.$transaction([
+            prisma.usuario.update({
+                where: {
+                    id: verificacion.usuarioId,
+                },
+                data: {
+                    estaVerificado: true,
+                },
+            }),
+
+            prisma.verificacionEmail.update({
+                where: {
+                    id: verificacion.id,
+                },
+                data: {
+                    utilizado: true,
+                },
+            }),
+        ]);
+
+        res.json({
+            message: "Correo electrónico verificado correctamente",
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al verificar el correo electrónico",
         });
     }
 }

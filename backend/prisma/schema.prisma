@@ -29,6 +29,7 @@ model Usuario {
   solicitudesServicio SolicitudServicio[]
   mensajesEnviados    Mensaje[]
   notificaciones      Notificacion[]
+  verificacionEmail   VerificacionEmail?
 }
 
 model Rol {
@@ -224,6 +225,17 @@ model Notificacion {
   referenciaId  Int?
   leida         Boolean          @default(false)
   fechaCreacion DateTime         @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+model VerificacionEmail {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int      @unique
+  tokenHash       String   @unique @db.VarChar(64)
+  fechaCreacion   DateTime @default(now())
+  fechaExpiracion DateTime
+  utilizado       Boolean  @default(false)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 }

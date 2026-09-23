@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
-
+import crypto from "crypto";
+import transporter from "../lib/mailer.js";
 
 export async function listarUsuarios(req, res) {
     try {
@@ -113,6 +114,17 @@ export async function crearUsuario(req, res) {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
+        const token = crypto.randomBytes(32).toString("hex");
+
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const fechaExpiracion = new Date(
+            Date.now() + 24 * 60 * 60 * 1000
+        );
+
         const usuario = await prisma.usuario.create({
             data: {
                 nombre,
@@ -123,6 +135,12 @@ export async function crearUsuario(req, res) {
                 fechaNacimiento: fechaNacimiento
                     ? new Date(fechaNacimiento)
                     : null,
+                verificacionEmail: {
+                    create: {
+                        tokenHash,
+                        fechaExpiracion,
+                    },
+                },
             },
             select: {
                 id: true,
@@ -137,8 +155,52 @@ export async function crearUsuario(req, res) {
             },
         });
 
+        const urlVerificacion =
+            `${process.env.FRONTEND_URL}/verificar-email?token=${token}`;
+
+        let emailEnviado = true;
+
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_FROM,
+                to: usuario.email,
+                subject: "Confirmá tu cuenta - Al Rescate",
+                text: `
+            Hola ${usuario.nombre}.
+
+            Gracias por registrarte en Al Rescate.
+
+            Confirmá tu correo ingresando al siguiente enlace:
+
+            ${urlVerificacion}
+
+            El enlace tiene una validez de 24 horas.
+                    `,
+                html: `
+            <h2>¡Hola ${usuario.nombre}!</h2>
+
+            <p>Gracias por registrarte en <strong>Al Rescate</strong>.</p>
+
+            <p>Para confirmar tu cuenta, hacé clic en el siguiente enlace:</p>
+
+            <p>
+                <a href="${urlVerificacion}">
+                    Confirmar mi correo
+                </a>
+            </p>
+
+            <p>Este enlace tiene una validez de 24 horas.</p>
+        `,
+            });
+        } catch (errorEmail) {
+            emailEnviado = false;
+            console.error("Error enviando email de verificación:", errorEmail);
+        }
+
         res.status(201).json({
-            message: "Usuario creado correctamente",
+            message: emailEnviado
+                ? "Usuario creado correctamente. Revisá tu correo para verificar la cuenta."
+                : "Usuario creado correctamente, pero no se pudo enviar el correo de verificación.",
             usuario,
         });
     } catch (error) {
