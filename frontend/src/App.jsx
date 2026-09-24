@@ -1,25 +1,24 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Inicio from "./pages/Inicio.jsx";
+import Login from "./pages/Login.jsx";
+import Registro from "./pages/Registro.jsx";
+import VerificarEmail from "./pages/VerificarEmail.jsx";
+
 
 function App() {
-  const [mensaje, setMensaje] = useState("Conectando con el backend...");
-
-  useEffect(() => {
-    fetch("http://localhost:3000")
-      .then((respuesta) => respuesta.json())
-      .then((datos) => {
-        setMensaje(datos.message);
-      })
-      .catch((error) => {
-        console.error(error);
-        setMensaje("No se pudo conectar con el backend");
-      });
-  }, []);
-
   return (
-    <main>
-      <h1>Trabajito</h1>
-      <p>{mensaje}</p>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Inicio />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+        <Route
+          path="/verificar-email"
+          element={<VerificarEmail />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

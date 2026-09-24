@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
 import crypto from "crypto";
+import transporter from "../lib/mailer.js";
 
 
 
@@ -173,6 +174,13 @@ export async function verificarEmail(req, res) {
         }
 
         if (verificacion.utilizado) {
+            if (verificacion.usuario.estaVerificado) {
+                return res.json({
+                    message: "Tu correo electrónico ya se encuentra verificado",
+                    yaVerificado: true,
+                });
+            }
+
             return res.status(400).json({
                 message: "El enlace de verificación ya fue utilizado",
             });
@@ -212,6 +220,306 @@ export async function verificarEmail(req, res) {
 
         res.status(500).json({
             message: "Error al verificar el correo electrónico",
+        });
+    }
+}
+
+
+export async function reenviarVerificacion(req, res) {
+    try {
+        const { email } = req.body ?? {};
+
+        if (!email) {
+            return res.status(400).json({
+                message: "El email es obligatorio",
+            });
+        }
+
+        const usuario = await prisma.usuario.findUnique({
+            where: {
+                email,
+            },
+        });
+
+        // Respuesta genérica para no revelar si un email está registrado
+        if (!usuario) {
+            return res.json({
+                message:
+                    "Si existe una cuenta pendiente de verificación con ese email, se enviará un nuevo enlace.",
+            });
+        }
+
+        if (usuario.estaVerificado) {
+            return res.json({
+                message:
+                    "Si existe una cuenta pendiente de verificación con ese email, se enviará un nuevo enlace.",
+            });
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const fechaExpiracion = new Date(
+            Date.now() + 24 * 60 * 60 * 1000
+        );
+
+        await prisma.verificacionEmail.upsert({
+            where: {
+                usuarioId: usuario.id,
+            },
+            update: {
+                tokenHash,
+                fechaCreacion: new Date(),
+                fechaExpiracion,
+                utilizado: false,
+            },
+            create: {
+                usuarioId: usuario.id,
+                tokenHash,
+                fechaExpiracion,
+            },
+        });
+
+        const urlVerificacion =
+            `${process.env.FRONTEND_URL}/verificar-email?token=${token}`;
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: usuario.email,
+            subject: "Confirmá tu cuenta - Al Rescate",
+            text: `
+Hola ${usuario.nombre}.
+
+Solicitaste un nuevo enlace para verificar tu cuenta en Al Rescate.
+
+Confirmá tu correo ingresando al siguiente enlace:
+
+${urlVerificacion}
+
+El enlace tiene una validez de 24 horas.
+            `,
+            html: `
+                <h2>¡Hola ${usuario.nombre}!</h2>
+
+                <p>
+                    Solicitaste un nuevo enlace para verificar tu cuenta en
+                    <strong>Al Rescate</strong>.
+                </p>
+
+                <p>
+                    <a href="${urlVerificacion}">
+                        Confirmar mi correo
+                    </a>
+                </p>
+
+                <p>Este enlace tiene una validez de 24 horas.</p>
+            `,
+        });
+
+        res.json({
+            message:
+                "Si existe una cuenta pendiente de verificación con ese email, se enviará un nuevo enlace.",
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al reenviar el correo de verificación",
+        });
+    }
+}
+
+export async function solicitarRecuperacionPassword(req, res) {
+    try {
+        const { email } = req.body ?? {};
+
+        if (!email) {
+            return res.status(400).json({
+                message: "El email es obligatorio",
+            });
+        }
+
+        const usuario = await prisma.usuario.findUnique({
+            where: {
+                email,
+            },
+        });
+
+        const mensajeGenerico =
+            "Si existe una cuenta asociada a ese email, recibirás un enlace para restablecer tu contraseña.";
+
+        // No revelamos si el email existe o no
+        if (!usuario || !usuario.estaActivo) {
+            return res.json({
+                message: mensajeGenerico,
+            });
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const fechaExpiracion = new Date(
+            Date.now() + 60 * 60 * 1000
+        );
+
+        await prisma.recuperacionPassword.upsert({
+            where: {
+                usuarioId: usuario.id,
+            },
+            update: {
+                tokenHash,
+                fechaCreacion: new Date(),
+                fechaExpiracion,
+                utilizado: false,
+            },
+            create: {
+                usuarioId: usuario.id,
+                tokenHash,
+                fechaExpiracion,
+            },
+        });
+
+        const urlRecuperacion =
+            `${process.env.FRONTEND_URL}/restablecer-password?token=${token}`;
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: usuario.email,
+            subject: "Restablecé tu contraseña - Al Rescate",
+            text: `
+Hola ${usuario.nombre}.
+
+Recibimos una solicitud para restablecer tu contraseña.
+
+Ingresá al siguiente enlace:
+
+${urlRecuperacion}
+
+El enlace tiene una validez de 1 hora.
+
+Si no solicitaste este cambio, podés ignorar este correo.
+            `,
+            html: `
+                <h2>¡Hola ${usuario.nombre}!</h2>
+
+                <p>
+                    Recibimos una solicitud para restablecer tu contraseña
+                    de <strong>Al Rescate</strong>.
+                </p>
+
+                <p>
+                    <a href="${urlRecuperacion}">
+                        Restablecer mi contraseña
+                    </a>
+                </p>
+
+                <p>
+                    Este enlace tiene una validez de 1 hora.
+                </p>
+
+                <p>
+                    Si no solicitaste este cambio, podés ignorar este correo.
+                </p>
+            `,
+        });
+
+        res.json({
+            message: mensajeGenerico,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al solicitar la recuperación de contraseña",
+        });
+    }
+}
+
+
+export async function restablecerPassword(req, res) {
+    try {
+        const { token, password } = req.body ?? {};
+
+        if (!token || !password) {
+            return res.status(400).json({
+                message: "Token y nueva contraseña son obligatorios",
+            });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                message: "La contraseña debe tener al menos 8 caracteres",
+            });
+        }
+
+        const tokenHash = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const recuperacion =
+            await prisma.recuperacionPassword.findUnique({
+                where: {
+                    tokenHash,
+                },
+            });
+
+        if (!recuperacion) {
+            return res.status(400).json({
+                message: "Token de recuperación inválido",
+            });
+        }
+
+        if (recuperacion.utilizado) {
+            return res.status(400).json({
+                message: "El enlace de recuperación ya fue utilizado",
+            });
+        }
+
+        if (recuperacion.fechaExpiracion < new Date()) {
+            return res.status(400).json({
+                message: "El enlace de recuperación ha vencido",
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        await prisma.$transaction([
+            prisma.usuario.update({
+                where: {
+                    id: recuperacion.usuarioId,
+                },
+                data: {
+                    passwordHash,
+                },
+            }),
+
+            prisma.recuperacionPassword.update({
+                where: {
+                    id: recuperacion.id,
+                },
+                data: {
+                    utilizado: true,
+                },
+            }),
+        ]);
+
+        res.json({
+            message: "Contraseña restablecida correctamente",
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al restablecer la contraseña",
         });
     }
 }

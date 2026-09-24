@@ -112,6 +112,21 @@ export async function crearUsuario(req, res) {
             });
         }
 
+        const rolCliente = await prisma.rol.findUnique({
+            where: {
+                nombre: "CLIENTE",
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!rolCliente) {
+            return res.status(500).json({
+                message: "No se encontró el rol CLIENTE",
+            });
+        }
+
         const passwordHash = await bcrypt.hash(password, 10);
 
         const token = crypto.randomBytes(32).toString("hex");
@@ -135,6 +150,13 @@ export async function crearUsuario(req, res) {
                 fechaNacimiento: fechaNacimiento
                     ? new Date(fechaNacimiento)
                     : null,
+                
+                roles: {
+                    create: {
+                        rolId: rolCliente.id,
+                    },
+                },
+
                 verificacionEmail: {
                     create: {
                         tokenHash,

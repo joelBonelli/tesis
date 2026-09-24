@@ -1,0 +1,298 @@
+.trabajadores-inicio {
+  background: var(--color-surface);
+  padding: 10px 0 56px;
+}
+
+.trabajadores-inicio__contenido {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.trabajadores-inicio__encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 22px;
+}
+
+.trabajadores-inicio__encabezado h2 {
+  margin: 0;
+
+  font-size: 26px;
+  color: var(--color-text);
+}
+
+.trabajadores-inicio__encabezado a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.trabajadores-inicio__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* PERFILES */
+
+.trabajadores-inicio__perfiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.trabajador-card {
+  min-height: 155px;
+
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  align-items: center;
+  gap: 18px;
+
+  padding: 15px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background: var(--color-white);
+
+  box-shadow: 0 6px 20px rgba(58, 45, 35, 0.05);
+}
+
+.trabajador-card__imagen {
+  width: 100px;
+  height: 120px;
+
+  object-fit: cover;
+
+  border-radius: 14px;
+}
+
+.trabajador-card__info {
+  min-width: 0;
+}
+
+.trabajador-card__nombre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trabajador-card__nombre h3 {
+  margin: 0;
+
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.trabajador-card__verificado {
+  color: var(--color-secondary);
+}
+
+.trabajador-card__especialidad {
+  margin: 5px 0 10px;
+
+  color: var(--color-text-soft);
+  font-size: 13px;
+}
+
+.trabajador-card__rating,
+.trabajador-card__ubicacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 13px;
+}
+
+.trabajador-card__rating {
+  margin-bottom: 8px;
+
+  color: #e69a39;
+}
+
+.trabajador-card__rating strong {
+  color: var(--color-text);
+}
+
+.trabajador-card__rating span {
+  color: var(--color-text-soft);
+}
+
+.trabajador-card__ubicacion {
+  color: var(--color-text-soft);
+}
+
+.trabajador-card__boton {
+  align-self: end;
+
+  padding: 9px 15px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
+
+  background: transparent;
+  color: var(--color-primary);
+
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 650;
+
+  transition: 0.2s ease;
+}
+
+.trabajador-card__boton:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* COMERCIOS */
+
+.comercios-card {
+  position: relative;
+
+  display: flex;
+  gap: 17px;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eef5f1 0%,
+      #f8f2e9 100%
+    );
+}
+
+.comercios-card::after {
+  content: "";
+
+  position: absolute;
+  right: -45px;
+  bottom: -55px;
+
+  width: 160px;
+  height: 160px;
+
+  border-radius: 50%;
+
+  background: rgba(85, 125, 116, 0.08);
+}
+
+.comercios-card__icono {
+  width: 52px;
+  height: 52px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+
+  color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.comercios-card__contenido {
+  position: relative;
+  z-index: 2;
+}
+
+.comercios-card__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.comercios-card h3 {
+  margin: 7px 0 8px;
+
+  font-size: 18px;
+  line-height: 1.25;
+
+  color: var(--color-text);
+}
+
+.comercios-card p {
+  margin: 0 0 16px;
+
+  font-size: 13px;
+  line-height: 1.45;
+
+  color: var(--color-text-soft);
+}
+
+.comercios-card button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 0;
+
+  border: 0;
+
+  cursor: pointer;
+
+  background: transparent;
+  color: var(--color-primary);
+
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .trabajadores-inicio__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 750px) {
+  .trabajadores-inicio__perfiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .trabajadores-inicio__contenido {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .trabajadores-inicio__encabezado h2 {
+    font-size: 22px;
+  }
+
+  .trabajadores-inicio__encabezado a {
+    display: none;
+  }
+
+  .trabajador-card {
+    grid-template-columns: 82px 1fr;
+  }
+
+  .trabajador-card__imagen {
+    width: 82px;
+    height: 105px;
+  }
+
+  .trabajador-card__boton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

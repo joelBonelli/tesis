@@ -1,0 +1,181 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+
+  background: #f8f3ec;
+
+  color: var(--color-text);
+}
+
+.footer__contenido {
+  width: min(1180px, calc(100% - 48px));
+  min-height: 120px;
+
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 1.1fr 1.7fr 1fr;
+  align-items: center;
+  gap: 35px;
+}
+
+.footer__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer__logo-icono {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: var(--color-primary);
+  color: #ffffff;
+
+  line-height: 0;
+}
+
+.footer__logo-icono svg {
+  width: 24px;
+  height: 24px;
+
+  display: block;
+
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+.footer__logo div {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer__logo strong {
+  font-size: 20px;
+}
+
+.footer__logo span {
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  color: var(--color-text-soft);
+}
+
+.footer__nav {
+  display: flex;
+  justify-content: center;
+  gap: 23px;
+
+  flex-wrap: wrap;
+}
+
+.footer__nav a {
+  font-size: 12px;
+  font-weight: 550;
+
+  color: var(--color-text-soft);
+
+  transition: color 0.2s ease;
+}
+
+.footer__nav a:hover {
+  color: var(--color-primary);
+}
+
+.footer__argentina {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+
+  color: var(--color-secondary);
+}
+
+.footer__argentina div {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer__argentina strong {
+  font-size: 13px;
+}
+
+.footer__argentina span {
+  font-size: 11px;
+
+  color: var(--color-text-soft);
+}
+
+.footer__argentina svg:last-child {
+  color: var(--color-primary);
+}
+
+.footer__inferior {
+  width: min(1180px, calc(100% - 48px));
+
+  margin: 0 auto;
+
+  padding: 18px 0;
+
+  border-top: 1px solid var(--color-border);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 11px;
+
+  color: var(--color-text-soft);
+}
+
+.footer__inferior div {
+  display: flex;
+  gap: 20px;
+}
+
+.footer__inferior a:hover {
+  color: var(--color-primary);
+}
+
+@media (max-width: 900px) {
+  .footer__contenido {
+    grid-template-columns: 1fr;
+
+    padding: 35px 0;
+
+    text-align: center;
+  }
+
+  .footer__logo {
+    justify-content: center;
+  }
+
+  .footer__argentina {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer__contenido,
+  .footer__inferior {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .footer__nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer__inferior {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

@@ -23,13 +23,14 @@ model Usuario {
   estaActivo      Boolean   @default(true)
   estaVerificado  Boolean   @default(false)
 
-  roles               UsuarioRol[]
-  perfilTrabajador    PerfilTrabajador?
-  sponsors            UsuarioSponsor[]
-  solicitudesServicio SolicitudServicio[]
-  mensajesEnviados    Mensaje[]
-  notificaciones      Notificacion[]
-  verificacionEmail   VerificacionEmail?
+  roles                UsuarioRol[]
+  perfilTrabajador     PerfilTrabajador?
+  sponsors             UsuarioSponsor[]
+  solicitudesServicio  SolicitudServicio[]
+  mensajesEnviados     Mensaje[]
+  notificaciones       Notificacion[]
+  verificacionEmail    VerificacionEmail?
+  recuperacionPassword RecuperacionPassword?
 }
 
 model Rol {
@@ -230,6 +231,17 @@ model Notificacion {
 }
 
 model VerificacionEmail {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int      @unique
+  tokenHash       String   @unique @db.VarChar(64)
+  fechaCreacion   DateTime @default(now())
+  fechaExpiracion DateTime
+  utilizado       Boolean  @default(false)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+model RecuperacionPassword {
   id              Int      @id @default(autoincrement())
   usuarioId       Int      @unique
   tokenHash       String   @unique @db.VarChar(64)
