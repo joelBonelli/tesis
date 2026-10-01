@@ -306,3 +306,18 @@
 .login__ver-password:hover {
   color: var(--color-primary);
 }
+
+.login__olvide-password {
+  align-self: flex-end;
+
+  margin-top: -9px;
+
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.login__olvide-password:hover {
+  text-decoration: underline;
+}

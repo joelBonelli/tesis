@@ -36,7 +36,7 @@ function Login() {
         JSON.stringify(datos.usuario)
       );
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -135,6 +135,14 @@ function Login() {
                     </button>
                 </div>
               </label>
+
+              <Link
+                to="/recuperar-password"
+                className="login__olvide-password"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>          
+
 
               {error && (
                 <div className="login__error">

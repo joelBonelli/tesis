@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import uploadImagen from "../middlewares/uploadImagen.js";
 import {
   login,
   obtenerPerfil,
@@ -7,6 +7,9 @@ import {
   reenviarVerificacion,
   solicitarRecuperacionPassword,
   restablecerPassword,
+  actualizarPerfil,
+  cambiarPassword,
+  actualizarFotoPerfil,
 } from "../controllers/auth.controller.js";
 
 import { autenticar } from "../middlewares/autenticacion.js";
@@ -26,5 +29,17 @@ router.post(
   restablecerPassword
 );
 router.get("/perfil", autenticar, obtenerPerfil);
+router.patch("/perfil", autenticar, actualizarPerfil);
+router.patch(
+    "/perfil/password",
+    autenticar,
+    cambiarPassword
+);
+router.post(
+    "/perfil/foto",
+    autenticar,
+    uploadImagen.single("foto"),
+    actualizarFotoPerfil
+);
 
 export default router;

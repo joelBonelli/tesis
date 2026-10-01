@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
 import crypto from "crypto";
 import transporter from "../lib/mailer.js";
-
+import cloudinary from "../lib/cloudinary.js";
 
 
 export async function login(req, res) {
@@ -106,6 +106,8 @@ export async function obtenerPerfil(req, res) {
                 email: true,
                 telefono: true,
                 fechaNacimiento: true,
+                fotoPerfilUrl: true,
+                fotoPerfilPublicId: true,
                 fechaRegistro: true,
                 estaActivo: true,
                 estaVerificado: true,
@@ -520,6 +522,292 @@ export async function restablecerPassword(req, res) {
 
         res.status(500).json({
             message: "Error al restablecer la contraseña",
+        });
+    }
+}
+
+
+
+export async function actualizarPerfil(req, res) {
+    try {
+        const usuarioId = req.usuario.usuarioId;
+
+        const {
+            nombre,
+            apellido,
+            telefono,
+            fechaNacimiento,
+        } = req.body ?? {};
+
+        if (!nombre || !apellido) {
+            return res.status(400).json({
+                message: "Nombre y apellido son obligatorios",
+            });
+        }
+
+        const usuario = await prisma.usuario.update({
+            where: {
+                id: usuarioId,
+            },
+            data: {
+                nombre,
+                apellido,
+                telefono: telefono || null,
+                fechaNacimiento: fechaNacimiento
+                    ? new Date(fechaNacimiento)
+                    : null,
+            },
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                telefono: true,
+                fechaNacimiento: true,
+                fotoPerfilUrl: true,
+                fotoPerfilPublicId: true,
+                fechaRegistro: true,
+                estaActivo: true,
+                estaVerificado: true,
+                roles: {
+                    select: {
+                        rol: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                                descripcion: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        res.json({
+            message: "Perfil actualizado correctamente",
+            usuario: {
+                ...usuario,
+                roles: usuario.roles.map((item) => item.rol),
+            },
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al actualizar el perfil",
+        });
+    }
+}
+
+
+export async function cambiarPassword(req, res) {
+    try {
+        const usuarioId = req.usuario.usuarioId;
+
+        const {
+            passwordActual,
+            passwordNueva,
+        } = req.body ?? {};
+
+        if (!passwordActual || !passwordNueva) {
+            return res.status(400).json({
+                message: "Debés completar ambas contraseñas",
+            });
+        }
+
+        if (passwordNueva.length < 8) {
+            return res.status(400).json({
+                message: "La nueva contraseña debe tener al menos 8 caracteres",
+            });
+        }
+
+        const usuario = await prisma.usuario.findUnique({
+            where: {
+                id: usuarioId,
+            },
+            select: {
+                passwordHash: true,
+            },
+        });
+
+        if (!usuario) {
+            return res.status(404).json({
+                message: "Usuario no encontrado",
+            });
+        }
+
+        const passwordCorrecta = await bcrypt.compare(
+            passwordActual,
+            usuario.passwordHash
+        );
+
+        if (!passwordCorrecta) {
+            return res.status(400).json({
+                message: "La contraseña actual no es correcta",
+            });
+        }
+
+        const mismaPassword = await bcrypt.compare(
+            passwordNueva,
+            usuario.passwordHash
+        );
+
+        if (mismaPassword) {
+            return res.status(400).json({
+                message: "La nueva contraseña debe ser diferente a la actual",
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(
+            passwordNueva,
+            10
+        );
+
+        await prisma.usuario.update({
+            where: {
+                id: usuarioId,
+            },
+            data: {
+                passwordHash,
+            },
+        });
+
+        return res.json({
+            message: "Contraseña actualizada correctamente",
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Error al actualizar la contraseña",
+        });
+    }
+}
+
+
+export async function actualizarFotoPerfil(req, res) {
+    let nuevaFotoPublicId = null;
+
+    try {
+        const usuarioId = req.usuario.usuarioId;
+
+        if (!req.file) {
+            return res.status(400).json({
+                message: "Debés seleccionar una imagen",
+            });
+        }
+
+        const usuarioActual = await prisma.usuario.findUnique({
+            where: {
+                id: usuarioId,
+            },
+            select: {
+                fotoPerfilPublicId: true,
+            },
+        });
+
+        if (!usuarioActual) {
+            return res.status(404).json({
+                message: "Usuario no encontrado",
+            });
+        }
+
+        const resultadoCloudinary = await new Promise(
+            (resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "al-rescate/perfiles",
+                        resource_type: "image",
+                    },
+                    (error, resultado) => {
+                        if (error) {
+                            reject(error);
+                            return;
+                        }
+
+                        resolve(resultado);
+                    }
+                );
+
+                stream.end(req.file.buffer);
+            }
+        );
+
+        nuevaFotoPublicId = resultadoCloudinary.public_id;
+
+        const usuario = await prisma.usuario.update({
+            where: {
+                id: usuarioId,
+            },
+            data: {
+                fotoPerfilUrl: resultadoCloudinary.secure_url,
+                fotoPerfilPublicId:
+                    resultadoCloudinary.public_id,
+            },
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                telefono: true,
+                fechaNacimiento: true,
+                estaVerificado: true,
+                fotoPerfilUrl: true,
+                fotoPerfilPublicId: true,
+                roles: {
+                    select: {
+                        rol: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                                descripcion: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (usuarioActual.fotoPerfilPublicId) {
+            try {
+                await cloudinary.uploader.destroy(
+                    usuarioActual.fotoPerfilPublicId
+                );
+            } catch (error) {
+                console.error(
+                    "No se pudo eliminar la foto anterior:",
+                    error
+                );
+            }
+        }
+
+        return res.json({
+            message: "Foto de perfil actualizada correctamente",
+            usuario: {
+                ...usuario,
+                roles: usuario.roles.map(
+                    (item) => item.rol
+                ),
+            },
+        });
+    } catch (error) {
+        console.error(error);
+
+        if (nuevaFotoPublicId) {
+            try {
+                await cloudinary.uploader.destroy(
+                    nuevaFotoPublicId
+                );
+            } catch (errorEliminar) {
+                console.error(
+                    "No se pudo limpiar la imagen subida:",
+                    errorEliminar
+                );
+            }
+        }
+
+        return res.status(500).json({
+            message: "Error al actualizar la foto de perfil",
         });
     }
 }

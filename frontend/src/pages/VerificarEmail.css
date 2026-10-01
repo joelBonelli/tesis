@@ -103,3 +103,85 @@
     transform: rotate(360deg);
   }
 }
+
+.verificar-email__reenvio {
+  margin-top: 24px;
+}
+
+.verificar-email__reenvio > p {
+  margin-bottom: 16px;
+
+  font-size: 13px;
+}
+
+.verificar-email__campo {
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+
+  background: #fffdfa;
+}
+
+.verificar-email__campo:focus-within {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 3px rgba(217, 122, 80, 0.12);
+}
+
+.verificar-email__campo svg {
+  color: var(--color-primary);
+}
+
+.verificar-email__campo input {
+  width: 100%;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+  color: var(--color-text);
+}
+
+.verificar-email__reenvio .verificar-email__boton {
+  border: 0;
+  cursor: pointer;
+}
+
+.verificar-email__reenviado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px;
+
+  border-radius: 11px;
+
+  background: #eaf4f1;
+  color: var(--color-secondary);
+
+  font-size: 13px;
+  text-align: left;
+}
+
+.verificar-email__acciones {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+
+  margin-top: 24px;
+}
+
+.verificar-email__acciones a {
+  color: var(--color-primary);
+
+  font-size: 13px;
+  font-weight: 700;
+}

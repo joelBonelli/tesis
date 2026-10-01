@@ -12,16 +12,18 @@ datasource db {
 }
 
 model Usuario {
-  id              Int       @id @default(autoincrement())
-  nombre          String    @db.VarChar(60)
-  apellido        String    @db.VarChar(80)
-  email           String    @unique @db.VarChar(120)
-  passwordHash    String    @db.VarChar(255)
-  telefono        String?   @db.VarChar(30)
-  fechaNacimiento DateTime? @db.Date
-  fechaRegistro   DateTime  @default(now())
-  estaActivo      Boolean   @default(true)
-  estaVerificado  Boolean   @default(false)
+  id                 Int       @id @default(autoincrement())
+  nombre             String    @db.VarChar(60)
+  apellido           String    @db.VarChar(80)
+  email              String    @unique @db.VarChar(120)
+  passwordHash       String    @db.VarChar(255)
+  telefono           String?   @db.VarChar(30)
+  fechaNacimiento    DateTime? @db.Date
+  fechaRegistro      DateTime  @default(now())
+  estaActivo         Boolean   @default(true)
+  estaVerificado     Boolean   @default(false)
+  fotoPerfilUrl      String?   @db.VarChar(500)
+  fotoPerfilPublicId String?   @db.VarChar(255)
 
   roles                UsuarioRol[]
   perfilTrabajador     PerfilTrabajador?

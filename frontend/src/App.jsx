@@ -4,6 +4,11 @@ import Inicio from "./pages/Inicio.jsx";
 import Login from "./pages/Login.jsx";
 import Registro from "./pages/Registro.jsx";
 import VerificarEmail from "./pages/VerificarEmail.jsx";
+import RecuperarPassword from "./pages/RecuperarPassword.jsx";
+import RestablecerPassword from "./pages/RestablecerPassword.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import RutaProtegida from "./components/RutaProtegida.jsx";
+import Perfil from "./pages/Perfil.jsx";
 
 
 function App() {
@@ -16,6 +21,30 @@ function App() {
         <Route
           path="/verificar-email"
           element={<VerificarEmail />}
+        />
+        <Route
+          path="/recuperar-password"
+          element={<RecuperarPassword />}
+        />
+        <Route
+          path="/restablecer-password"
+          element={<RestablecerPassword />}
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <RutaProtegida>
+              <Dashboard />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/perfil"
+          element={
+            <RutaProtegida>
+              <Perfil />
+            </RutaProtegida>
+          }
         />
       </Routes>
     </BrowserRouter>

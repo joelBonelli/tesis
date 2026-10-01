@@ -5,11 +5,16 @@ import {
   CircleAlert,
   LoaderCircle,
   ArrowRight,
+  Mail,
 } from "lucide-react";
 
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
-import { verificarEmail } from "../services/authService.js";
+
+import {
+  verificarEmail,
+  reenviarVerificacion,
+} from "../services/authService.js";
 
 import "./VerificarEmail.css";
 
@@ -17,9 +22,14 @@ function VerificarEmail() {
   const [searchParams] = useSearchParams();
 
   const [estado, setEstado] = useState("cargando");
+
   const [mensaje, setMensaje] = useState(
     "Estamos verificando tu correo..."
   );
+
+  const [email, setEmail] = useState("");
+  const [reenviando, setReenviando] = useState(false);
+  const [reenviado, setReenviado] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -37,6 +47,16 @@ function VerificarEmail() {
         setEstado("exito");
         setMensaje(datos.message);
       } catch (error) {
+        if (error.message.toLowerCase().includes("vencido")) {
+          setEstado("vencido");
+
+          setMensaje(
+            "El enlace de verificación venció. Podés solicitar uno nuevo."
+          );
+
+          return;
+        }
+
         setEstado("error");
         setMensaje(error.message);
       }
@@ -44,6 +64,27 @@ function VerificarEmail() {
 
     confirmarEmail();
   }, [searchParams]);
+
+  async function handleReenviar(event) {
+    event.preventDefault();
+
+    if (!email) {
+      return;
+    }
+
+    setReenviando(true);
+    setReenviado(false);
+
+    try {
+      await reenviarVerificacion(email);
+
+      setReenviado(true);
+    } catch (error) {
+      setMensaje(error.message);
+    } finally {
+      setReenviando(false);
+    }
+  }
 
   return (
     <>
@@ -64,7 +105,7 @@ function VerificarEmail() {
             </div>
           )}
 
-          {estado === "error" && (
+          {(estado === "error" || estado === "vencido") && (
             <div className="verificar-email__icono verificar-email__icono--error">
               <CircleAlert size={38} />
             </div>
@@ -72,8 +113,13 @@ function VerificarEmail() {
 
           <h1>
             {estado === "cargando" && "Verificando correo"}
+
             {estado === "exito" && "¡Cuenta verificada!"}
-            {estado === "error" && "No pudimos verificar tu cuenta"}
+
+            {estado === "vencido" && "El enlace venció"}
+
+            {estado === "error" &&
+              "No pudimos verificar tu cuenta"}
           </h1>
 
           <p>{mensaje}</p>
@@ -86,6 +132,67 @@ function VerificarEmail() {
               Iniciar sesión
               <ArrowRight size={18} />
             </Link>
+          )}
+
+          {estado === "vencido" && (
+            <form
+              className="verificar-email__reenvio"
+              onSubmit={handleReenviar}
+            >
+              {!reenviado ? (
+                <>
+                  <p>
+                    Ingresá el email con el que te registraste y
+                    te enviaremos un nuevo enlace.
+                  </p>
+
+                  <div className="verificar-email__campo">
+                    <Mail size={18} />
+
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) =>
+                        setEmail(event.target.value)
+                      }
+                      placeholder="tu@email.com"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="verificar-email__boton"
+                    disabled={reenviando}
+                  >
+                    {reenviando
+                      ? "Enviando..."
+                      : "Reenviar verificación"}
+                  </button>
+                </>
+              ) : (
+                <div className="verificar-email__reenviado">
+                  <CheckCircle2 size={22} />
+
+                  <span>
+                    Si la cuenta existe y está pendiente de
+                    verificación, recibirás un nuevo correo.
+                  </span>
+                </div>
+              )}
+            </form>
+          )}
+
+          {estado === "error" && (
+            <div className="verificar-email__acciones">
+              <Link to="/login">
+                Volver al login
+              </Link>
+
+              <Link to="/registro">
+                Crear una cuenta
+              </Link>
+            </div>
           )}
 
         </section>
