@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
-
+import { obtenerPerfil } from "../services/authService.js";
 import "./Header.css";
 
 function Header() {
@@ -24,6 +24,33 @@ function Header() {
             return null;
         }
     });
+
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        return;
+      }
+
+      
+
+      async function cargarUsuario() {
+        try {
+          const datos = await obtenerPerfil();
+
+          setUsuario(datos);
+
+          localStorage.setItem(
+            "usuario",
+            JSON.stringify(datos)
+          );
+        } catch {
+          // La validación de sesión se maneja en las páginas protegidas.
+        }
+      }
+
+      cargarUsuario();
+    }, []);
 
     function cerrarSesion() {
         localStorage.removeItem("token");
@@ -82,7 +109,14 @@ function Header() {
                       <div className="header__sesion">
 
                           <div className="header__avatar">
-                              {usuario.nombre?.charAt(0).toUpperCase()}
+                            {usuario.fotoPerfilUrl ? (
+                              <img
+                                src={usuario.fotoPerfilUrl}
+                                alt={`Foto de ${usuario.nombre}`}
+                              />
+                            ) : (
+                              usuario.nombre?.charAt(0).toUpperCase()
+                            )}
                           </div>
 
                           <div className="header__usuario">

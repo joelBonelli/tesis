@@ -9,6 +9,7 @@ import RestablecerPassword from "./pages/RestablecerPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import RutaProtegida from "./components/RutaProtegida.jsx";
 import Perfil from "./pages/Perfil.jsx";
+import TrabajadorPublico from "./pages/TrabajadorPublico.jsx";
 
 
 function App() {
@@ -45,6 +46,10 @@ function App() {
               <Perfil />
             </RutaProtegida>
           }
+        />
+        <Route
+          path="/trabajadores/:id"
+          element={<TrabajadorPublico />}
         />
       </Routes>
     </BrowserRouter>

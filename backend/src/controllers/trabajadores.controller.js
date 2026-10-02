@@ -21,11 +21,12 @@ export async function crearMiPerfilTrabajador(req, res) {
       });
     }
 
-    const perfilExistente = await prisma.perfilTrabajador.findUnique({
-      where: {
-        usuarioId,
-      },
-    });
+    const perfilExistente =
+      await prisma.perfilTrabajador.findUnique({
+        where: {
+          usuarioId,
+        },
+      });
 
     if (perfilExistente) {
       return res.status(409).json({
@@ -33,33 +34,73 @@ export async function crearMiPerfilTrabajador(req, res) {
       });
     }
 
-    const perfil = await prisma.perfilTrabajador.create({
-      data: {
-        usuarioId,
-        tituloProfesional,
-        descripcion,
-        zonaTrabajo,
-        aniosExperiencia:
-          aniosExperiencia !== undefined
-            ? Number(aniosExperiencia)
-            : null,
+    const rolTrabajador = await prisma.rol.findUnique({
+      where: {
+        nombre: "TRABAJADOR",
       },
       select: {
         id: true,
-        usuarioId: true,
-        tituloProfesional: true,
-        descripcion: true,
-        zonaTrabajo: true,
-        aniosExperiencia: true,
-        calificacion: true,
-        trabajosRealizados: true,
-        disponible: true,
-        fechaCreacion: true,
       },
     });
 
+    if (!rolTrabajador) {
+      return res.status(500).json({
+        message:
+          "No se encuentra configurado el rol TRABAJADOR",
+      });
+    }
+
+    const perfil = await prisma.$transaction(
+      async (tx) => {
+        const nuevoPerfil =
+          await tx.perfilTrabajador.create({
+            data: {
+              usuarioId,
+              tituloProfesional,
+              descripcion,
+              zonaTrabajo,
+              aniosExperiencia:
+                aniosExperiencia !== undefined
+                  ? Number(aniosExperiencia)
+                  : null,
+            },
+            select: {
+              id: true,
+              usuarioId: true,
+              tituloProfesional: true,
+              descripcion: true,
+              zonaTrabajo: true,
+              aniosExperiencia: true,
+              calificacion: true,
+              trabajosRealizados: true,
+              disponible: true,
+              fechaCreacion: true,
+            },
+          });
+
+        await tx.usuarioRol.upsert({
+          where: {
+            usuarioId_rolId: {
+              usuarioId,
+              rolId: rolTrabajador.id,
+            },
+          },
+
+          update: {},
+
+          create: {
+            usuarioId,
+            rolId: rolTrabajador.id,
+          },
+        });
+
+        return nuevoPerfil;
+      }
+    );
+
     res.status(201).json({
-      message: "Perfil de trabajador creado correctamente",
+      message:
+        "Perfil de trabajador creado correctamente",
       perfil,
     });
   } catch (error) {
@@ -238,6 +279,22 @@ export async function obtenerTrabajadorPorId(req, res) {
             nombre: true,
             apellido: true,
             estaVerificado: true,
+            fotoPerfilUrl: true,
+          },
+        },
+
+        categorias: {
+          select: {
+            categoria: {
+              select: {
+                id: true,
+                nombre: true,
+                descripcion: true,
+              },
+            },
+          },
+          orderBy: {
+            categoriaId: "asc",
           },
         },
 
@@ -289,17 +346,21 @@ export async function asignarCategoriasMiPerfil(req, res) {
     const usuarioId = req.usuario.usuarioId;
     const { categoriaIds } = req.body ?? {};
 
-    if (!Array.isArray(categoriaIds) || categoriaIds.length === 0) {
+    if (
+      !Array.isArray(categoriaIds) ||
+      categoriaIds.length === 0
+    ) {
       return res.status(400).json({
         message: "Debe indicar al menos una categoría",
       });
     }
 
-    const perfil = await prisma.perfilTrabajador.findUnique({
-      where: {
-        usuarioId,
-      },
-    });
+    const perfil =
+      await prisma.perfilTrabajador.findUnique({
+        where: {
+          usuarioId,
+        },
+      });
 
     if (!perfil) {
       return res.status(404).json({
@@ -308,40 +369,59 @@ export async function asignarCategoriasMiPerfil(req, res) {
     }
 
     const idsNormalizados = [
-      ...new Set(categoriaIds.map((id) => Number(id))),
+      ...new Set(
+        categoriaIds.map((id) => Number(id))
+      ),
     ];
 
-    if (idsNormalizados.some((id) => !Number.isInteger(id))) {
+    if (
+      idsNormalizados.some(
+        (id) => !Number.isInteger(id)
+      )
+    ) {
       return res.status(400).json({
-        message: "Uno o más IDs de categoría no son válidos",
+        message:
+          "Uno o más IDs de categoría no son válidos",
       });
     }
 
-    const categoriasExistentes = await prisma.categoria.findMany({
-      where: {
-        id: {
-          in: idsNormalizados,
+    const categoriasExistentes =
+      await prisma.categoria.findMany({
+        where: {
+          id: {
+            in: idsNormalizados,
+          },
+          estaActiva: true,
         },
-        estaActiva: true,
-      },
-      select: {
-        id: true,
-        nombre: true,
-      },
-    });
+        select: {
+          id: true,
+          nombre: true,
+        },
+      });
 
-    if (categoriasExistentes.length !== idsNormalizados.length) {
+    if (
+      categoriasExistentes.length !==
+      idsNormalizados.length
+    ) {
       return res.status(400).json({
-        message: "Una o más categorías no existen o están inactivas",
+        message:
+          "Una o más categorías no existen o están inactivas",
       });
     }
 
-    await prisma.perfilTrabajadorCategoria.createMany({
-      data: idsNormalizados.map((categoriaId) => ({
-        perfilTrabajadorId: perfil.id,
-        categoriaId,
-      })),
-      skipDuplicates: true,
+    await prisma.$transaction(async (tx) => {
+      await tx.perfilTrabajadorCategoria.deleteMany({
+        where: {
+          perfilTrabajadorId: perfil.id,
+        },
+      });
+
+      await tx.perfilTrabajadorCategoria.createMany({
+        data: idsNormalizados.map((categoriaId) => ({
+          perfilTrabajadorId: perfil.id,
+          categoriaId,
+        })),
+      });
     });
 
     const categoriasAsignadas =
@@ -364,14 +444,17 @@ export async function asignarCategoriasMiPerfil(req, res) {
       });
 
     res.json({
-      message: "Categorías asignadas correctamente",
-      categorias: categoriasAsignadas.map((item) => item.categoria),
+      message: "Categorías actualizadas correctamente",
+
+      categorias: categoriasAsignadas.map(
+        (item) => item.categoria
+      ),
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      message: "Error al asignar las categorías",
+      message: "Error al actualizar las categorías",
     });
   }
 }
@@ -528,6 +611,35 @@ export async function obtenerCalificacionesTrabajador(req, res) {
 
     res.status(500).json({
       message: "Error al obtener las calificaciones del trabajador",
+    });
+  }
+}
+
+
+export async function obtenerCategoriasActivas(req, res) {
+  try {
+    const categorias = await prisma.categoria.findMany({
+      where: {
+        estaActiva: true,
+      },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+      },
+      orderBy: {
+        nombre: "asc",
+      },
+    });
+
+    res.json({
+      categorias,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al obtener las categorías",
     });
   }
 }

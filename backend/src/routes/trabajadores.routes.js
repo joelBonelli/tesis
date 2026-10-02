@@ -9,6 +9,7 @@ import {
   asignarCategoriasMiPerfil,
   obtenerCategoriasMiPerfil,
   obtenerCalificacionesTrabajador,
+  obtenerCategoriasActivas,
 } from "../controllers/trabajadores.controller.js";
 
 import { autenticar } from "../middlewares/autenticacion.js";
@@ -19,7 +20,6 @@ const router = Router();
 router.post(
   "/mi-perfil-trabajador",
   autenticar,
-  autorizarRoles("TRABAJADOR"),
   crearMiPerfilTrabajador
 );
 
@@ -47,6 +47,12 @@ router.get(
 router.get(
   "/trabajadores/:id",
   obtenerTrabajadorPorId
+);
+
+router.get(
+  "/categorias",
+  autenticar,
+  obtenerCategoriasActivas
 );
 
 router.post(

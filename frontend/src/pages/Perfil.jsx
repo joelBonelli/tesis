@@ -19,6 +19,7 @@ import {
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import CambioPassword from "../components/CambioPassword.jsx";
+import PerfilTrabajador from "../components/PerfilTrabajador.jsx";
 
 import {
   obtenerPerfil,
@@ -532,6 +533,17 @@ function Perfil() {
             )}
 
           </section>
+          <PerfilTrabajador
+            usuario={usuario}
+            onUsuarioActualizado={(usuarioActualizado) => {
+              setUsuario(usuarioActualizado);
+
+              localStorage.setItem(
+                "usuario",
+                JSON.stringify(usuarioActualizado)
+              );
+            }}
+          />  
           <CambioPassword />  
         </div>
       </main>
