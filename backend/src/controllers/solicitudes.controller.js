@@ -135,6 +135,8 @@ export async function obtenerSolicitudesCompatibles(req, res) {
             },
             select: {
                 id: true,
+                disponible: true,
+
                 categorias: {
                     select: {
                         categoriaId: true,
@@ -146,6 +148,12 @@ export async function obtenerSolicitudesCompatibles(req, res) {
         if (!perfil) {
             return res.status(404).json({
                 message: "No posee un perfil de trabajador",
+            });
+        }
+
+        if (!perfil.disponible) {
+            return res.json({
+                solicitudes: [],
             });
         }
 
@@ -171,6 +179,12 @@ export async function obtenerSolicitudesCompatibles(req, res) {
                 // No mostrar solicitudes creadas por el mismo usuario
                 clienteId: {
                     not: usuarioId,
+                },
+
+                propuestas: {
+                    none: {
+                        perfilTrabajadorId: perfil.id,
+                    },
                 },
             },
 
@@ -262,6 +276,7 @@ export async function crearPropuesta(req, res) {
             },
             select: {
                 id: true,
+                disponible: true,
 
                 usuario: {
                     select: {
@@ -281,6 +296,12 @@ export async function crearPropuesta(req, res) {
         if (!perfil) {
             return res.status(404).json({
                 message: "No posee un perfil de trabajador",
+            });
+        }
+
+        if (!perfil.disponible) {
+            return res.status(403).json({
+                message: "Tu perfil se encuentra marcado como no disponible",
             });
         }
 
@@ -429,7 +450,17 @@ export async function obtenerPropuestasSolicitud(req, res) {
                 id: true,
                 clienteId: true,
                 titulo: true,
+                descripcion: true,
+                zona: true,
+                fechaCreacion: true,
                 estado: true,
+
+                categoria: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                    },
+                },
             },
         });
 
@@ -474,6 +505,7 @@ export async function obtenerPropuestasSolicitud(req, res) {
                                 nombre: true,
                                 apellido: true,
                                 estaVerificado: true,
+                                fotoPerfilUrl: true,
                             },
                         },
 
@@ -511,7 +543,11 @@ export async function obtenerPropuestasSolicitud(req, res) {
             solicitud: {
                 id: solicitud.id,
                 titulo: solicitud.titulo,
+                descripcion: solicitud.descripcion,
+                zona: solicitud.zona,
+                fechaCreacion: solicitud.fechaCreacion,
                 estado: solicitud.estado,
+                categoria: solicitud.categoria,
             },
 
             propuestas: propuestasFormateadas,
@@ -745,193 +781,271 @@ export async function aceptarPropuesta(req, res) {
 
 
 export async function cancelarSolicitud(req, res) {
-  try {
-    const usuarioId = req.usuario.usuarioId;
-    const solicitudId = Number(req.params.id);
+    try {
+        const usuarioId = req.usuario.usuarioId;
+        const solicitudId = Number(req.params.id);
 
-    if (!Number.isInteger(solicitudId)) {
-      return res.status(400).json({
-        message: "El ID de la solicitud no es válido",
-      });
+        if (!Number.isInteger(solicitudId)) {
+            return res.status(400).json({
+                message: "El ID de la solicitud no es válido",
+            });
+        }
+
+        const solicitud = await prisma.solicitudServicio.findUnique({
+            where: {
+                id: solicitudId,
+            },
+            select: {
+                id: true,
+                clienteId: true,
+                titulo: true,
+                estado: true,
+            },
+        });
+
+        if (!solicitud) {
+            return res.status(404).json({
+                message: "Solicitud no encontrada",
+            });
+        }
+
+        if (solicitud.clienteId !== usuarioId) {
+            return res.status(403).json({
+                message: "No tiene permisos para cancelar esta solicitud",
+            });
+        }
+
+        if (solicitud.estado !== "PUBLICADA") {
+            return res.status(400).json({
+                message: "Solo se puede cancelar una solicitud publicada",
+            });
+        }
+
+        const resultado = await prisma.$transaction(async (tx) => {
+            const solicitudCancelada = await tx.solicitudServicio.update({
+                where: {
+                    id: solicitudId,
+                },
+                data: {
+                    estado: "CANCELADA",
+                },
+                select: {
+                    id: true,
+                    titulo: true,
+                    estado: true,
+                },
+            });
+
+            await tx.propuestaServicio.updateMany({
+                where: {
+                    solicitudId,
+                    estado: "PENDIENTE",
+                },
+                data: {
+                    estado: "RECHAZADA",
+                },
+            });
+
+            return solicitudCancelada;
+        });
+
+        res.json({
+            message: "Solicitud cancelada correctamente",
+            solicitud: resultado,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al cancelar la solicitud",
+        });
     }
-
-    const solicitud = await prisma.solicitudServicio.findUnique({
-      where: {
-        id: solicitudId,
-      },
-      select: {
-        id: true,
-        clienteId: true,
-        titulo: true,
-        estado: true,
-      },
-    });
-
-    if (!solicitud) {
-      return res.status(404).json({
-        message: "Solicitud no encontrada",
-      });
-    }
-
-    if (solicitud.clienteId !== usuarioId) {
-      return res.status(403).json({
-        message: "No tiene permisos para cancelar esta solicitud",
-      });
-    }
-
-    if (solicitud.estado !== "PUBLICADA") {
-      return res.status(400).json({
-        message: "Solo se puede cancelar una solicitud publicada",
-      });
-    }
-
-    const resultado = await prisma.$transaction(async (tx) => {
-      const solicitudCancelada = await tx.solicitudServicio.update({
-        where: {
-          id: solicitudId,
-        },
-        data: {
-          estado: "CANCELADA",
-        },
-        select: {
-          id: true,
-          titulo: true,
-          estado: true,
-        },
-      });
-
-      await tx.propuestaServicio.updateMany({
-        where: {
-          solicitudId,
-          estado: "PENDIENTE",
-        },
-        data: {
-          estado: "RECHAZADA",
-        },
-      });
-
-      return solicitudCancelada;
-    });
-
-    res.json({
-      message: "Solicitud cancelada correctamente",
-      solicitud: resultado,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Error al cancelar la solicitud",
-    });
-  }
 }
 
 
 export async function retirarPropuesta(req, res) {
-  try {
-    const usuarioId = req.usuario.usuarioId;
-    const solicitudId = Number(req.params.solicitudId);
-    const propuestaId = Number(req.params.propuestaId);
+    try {
+        const usuarioId = req.usuario.usuarioId;
+        const solicitudId = Number(req.params.solicitudId);
+        const propuestaId = Number(req.params.propuestaId);
 
-    if (
-      !Number.isInteger(solicitudId) ||
-      !Number.isInteger(propuestaId)
-    ) {
-      return res.status(400).json({
-        message: "Los IDs indicados no son válidos",
-      });
+        if (
+            !Number.isInteger(solicitudId) ||
+            !Number.isInteger(propuestaId)
+        ) {
+            return res.status(400).json({
+                message: "Los IDs indicados no son válidos",
+            });
+        }
+
+        const perfil = await prisma.perfilTrabajador.findUnique({
+            where: {
+                usuarioId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!perfil) {
+            return res.status(404).json({
+                message: "No posee un perfil de trabajador",
+            });
+        }
+
+        const propuesta = await prisma.propuestaServicio.findUnique({
+            where: {
+                id: propuestaId,
+            },
+            select: {
+                id: true,
+                solicitudId: true,
+                perfilTrabajadorId: true,
+                estado: true,
+
+                solicitud: {
+                    select: {
+                        estado: true,
+                    },
+                },
+            },
+        });
+
+        if (!propuesta) {
+            return res.status(404).json({
+                message: "Propuesta no encontrada",
+            });
+        }
+
+        if (propuesta.solicitudId !== solicitudId) {
+            return res.status(400).json({
+                message: "La propuesta no corresponde a esta solicitud",
+            });
+        }
+
+        if (propuesta.perfilTrabajadorId !== perfil.id) {
+            return res.status(403).json({
+                message: "No tiene permisos para retirar esta propuesta",
+            });
+        }
+
+        if (propuesta.estado !== "PENDIENTE") {
+            return res.status(400).json({
+                message: "Solo se puede retirar una propuesta pendiente",
+            });
+        }
+
+        if (propuesta.solicitud.estado !== "PUBLICADA") {
+            return res.status(400).json({
+                message: "La solicitud ya no se encuentra disponible",
+            });
+        }
+
+        const propuestaRetirada =
+            await prisma.propuestaServicio.update({
+                where: {
+                    id: propuestaId,
+                },
+                data: {
+                    estado: "RETIRADA",
+                },
+                select: {
+                    id: true,
+                    monto: true,
+                    mensaje: true,
+                    diasEstimados: true,
+                    fechaCreacion: true,
+                    estado: true,
+                },
+            });
+
+        res.json({
+            message: "Propuesta retirada correctamente",
+            propuesta: propuestaRetirada,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al retirar la propuesta",
+        });
     }
+}
 
-    const perfil = await prisma.perfilTrabajador.findUnique({
-      where: {
-        usuarioId,
-      },
-      select: {
-        id: true,
-      },
-    });
 
-    if (!perfil) {
-      return res.status(404).json({
-        message: "No posee un perfil de trabajador",
-      });
+export async function obtenerMisPropuestas(req, res) {
+    try {
+        const usuarioId = req.usuario.usuarioId;
+
+        const perfil = await prisma.perfilTrabajador.findUnique({
+            where: {
+                usuarioId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!perfil) {
+            return res.status(404).json({
+                message: "No posee un perfil de trabajador",
+            });
+        }
+
+        const propuestas = await prisma.propuestaServicio.findMany({
+            where: {
+                perfilTrabajadorId: perfil.id,
+            },
+
+            select: {
+                id: true,
+                monto: true,
+                mensaje: true,
+                diasEstimados: true,
+                fechaCreacion: true,
+                estado: true,
+
+                solicitud: {
+                    select: {
+                        id: true,
+                        titulo: true,
+                        descripcion: true,
+                        zona: true,
+                        estado: true,
+                        fechaCreacion: true,
+
+                        categoria: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                            },
+                        },
+
+                        cliente: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                                apellido: true,
+                                estaVerificado: true,
+                            },
+                        },
+                    },
+                },
+            },
+
+            orderBy: {
+                fechaCreacion: "desc",
+            },
+        });
+
+        res.json({
+            propuestas,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error al obtener las propuestas enviadas",
+        });
     }
-
-    const propuesta = await prisma.propuestaServicio.findUnique({
-      where: {
-        id: propuestaId,
-      },
-      select: {
-        id: true,
-        solicitudId: true,
-        perfilTrabajadorId: true,
-        estado: true,
-
-        solicitud: {
-          select: {
-            estado: true,
-          },
-        },
-      },
-    });
-
-    if (!propuesta) {
-      return res.status(404).json({
-        message: "Propuesta no encontrada",
-      });
-    }
-
-    if (propuesta.solicitudId !== solicitudId) {
-      return res.status(400).json({
-        message: "La propuesta no corresponde a esta solicitud",
-      });
-    }
-
-    if (propuesta.perfilTrabajadorId !== perfil.id) {
-      return res.status(403).json({
-        message: "No tiene permisos para retirar esta propuesta",
-      });
-    }
-
-    if (propuesta.estado !== "PENDIENTE") {
-      return res.status(400).json({
-        message: "Solo se puede retirar una propuesta pendiente",
-      });
-    }
-
-    if (propuesta.solicitud.estado !== "PUBLICADA") {
-      return res.status(400).json({
-        message: "La solicitud ya no se encuentra disponible",
-      });
-    }
-
-    const propuestaRetirada =
-      await prisma.propuestaServicio.update({
-        where: {
-          id: propuestaId,
-        },
-        data: {
-          estado: "RETIRADA",
-        },
-        select: {
-          id: true,
-          monto: true,
-          mensaje: true,
-          diasEstimados: true,
-          fechaCreacion: true,
-          estado: true,
-        },
-      });
-
-    res.json({
-      message: "Propuesta retirada correctamente",
-      propuesta: propuestaRetirada,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Error al retirar la propuesta",
-    });
-  }
 }

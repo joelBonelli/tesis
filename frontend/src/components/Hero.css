@@ -300,4 +300,10 @@
   }
 }
 
+.header__usuario {
+  cursor: pointer;
+}
 
+.header__usuario:hover strong {
+  color: var(--color-primary);
+}

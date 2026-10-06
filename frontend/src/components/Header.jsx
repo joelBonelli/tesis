@@ -119,10 +119,13 @@ function Header() {
                             )}
                           </div>
 
-                          <div className="header__usuario">
+                          <Link
+                              to="/dashboard"
+                              className="header__usuario"
+                          >
                               <span>Hola,</span>
                               <strong>{usuario.nombre}</strong>
-                          </div>
+                          </Link>
 
                           <button
                               type="button"

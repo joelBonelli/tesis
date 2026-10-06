@@ -9,6 +9,7 @@ import {
   aceptarPropuesta,
   cancelarSolicitud,
   retirarPropuesta,
+  obtenerMisPropuestas,
 } from "../controllers/solicitudes.controller.js";
 
 import { autenticar } from "../middlewares/autenticacion.js";
@@ -35,6 +36,13 @@ router.get(
   autenticar,
   autorizarRoles("TRABAJADOR"),
   obtenerSolicitudesCompatibles
+);
+
+router.get(
+  "/mis-propuestas",
+  autenticar,
+  autorizarRoles("TRABAJADOR"),
+  obtenerMisPropuestas
 );
 
 router.post(

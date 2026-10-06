@@ -10,6 +10,10 @@ import Dashboard from "./pages/Dashboard.jsx";
 import RutaProtegida from "./components/RutaProtegida.jsx";
 import Perfil from "./pages/Perfil.jsx";
 import TrabajadorPublico from "./pages/TrabajadorPublico.jsx";
+import MisSolicitudes from "./pages/MisSolicitudes.jsx";
+import DetalleSolicitud from "./pages/DetalleSolicitud.jsx";
+import NuevaSolicitud from "./pages/NuevaSolicitud.jsx";
+import Trabajo from "./pages/Trabajo.jsx";
 
 
 function App() {
@@ -50,6 +54,38 @@ function App() {
         <Route
           path="/trabajadores/:id"
           element={<TrabajadorPublico />}
+        />
+        <Route
+          path="/solicitudes"
+          element={
+            <RutaProtegida>
+              <MisSolicitudes />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/solicitudes/:id"
+          element={
+            <RutaProtegida>
+              <DetalleSolicitud />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/solicitudes/nueva"
+          element={
+            <RutaProtegida>
+              <NuevaSolicitud />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/trabajo"
+          element={
+            <RutaProtegida>
+              <Trabajo />
+            </RutaProtegida>
+          }
         />
       </Routes>
     </BrowserRouter>

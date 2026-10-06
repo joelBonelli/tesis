@@ -124,7 +124,10 @@ function Dashboard() {
             </button>
 
             {esCliente && (
-              <button className="dashboard-card">
+              <button
+                className="dashboard-card"
+                onClick={() => navigate("/solicitudes")}
+              >
                 <div className="dashboard-card__icono">
                   <ClipboardList size={26} />
                 </div>
@@ -153,7 +156,10 @@ function Dashboard() {
               </button>
             )}
 
-            <button className="dashboard-card">
+            <button 
+              className="dashboard-card"
+              onClick={() => navigate("/trabajo")}
+            >
               <div className="dashboard-card__icono">
                 <Bell size={26} />
               </div>
