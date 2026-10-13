@@ -198,3 +198,32 @@ export async function obtenerMisPropuestas() {
 
   return datos;
 }
+
+
+export async function retirarPropuesta(
+  solicitudId,
+  propuestaId
+) {
+  const token = obtenerToken();
+
+  const respuesta = await fetch(
+    `${API_URL}/api/solicitudes/${solicitudId}/propuestas/${propuestaId}/retirar`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const datos = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(
+      datos.message ||
+        "No se pudo retirar la propuesta"
+    );
+  }
+
+  return datos;
+}

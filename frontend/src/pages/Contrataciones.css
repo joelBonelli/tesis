@@ -1,0 +1,284 @@
+.contrataciones {
+  min-height: calc(100vh - 82px);
+
+  padding: 50px 0 70px;
+
+  background: var(--color-bg);
+}
+
+.contrataciones__contenido {
+  width: min(1050px, calc(100% - 48px));
+
+  margin: 0 auto;
+}
+
+.contrataciones__volver {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 25px;
+  padding: 0;
+
+  border: 0;
+
+  cursor: pointer;
+
+  background: transparent;
+  color: var(--color-text-soft);
+
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.contrataciones__cabecera > span {
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 750;
+
+  text-transform: uppercase;
+}
+
+.contrataciones__cabecera h1 {
+  margin: 6px 0 7px;
+
+  color: var(--color-text);
+}
+
+.contrataciones__cabecera p {
+  margin: 0;
+
+  color: var(--color-text-soft);
+}
+
+.contrataciones__tabs {
+  display: flex;
+  gap: 6px;
+
+  margin: 30px 0 24px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contrataciones__tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 11px 14px;
+
+  border: 0;
+  border-bottom: 2px solid transparent;
+
+  cursor: pointer;
+
+  background: transparent;
+  color: var(--color-text-soft);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contrataciones__tab--activo {
+  border-bottom-color: var(--color-primary);
+
+  color: var(--color-primary);
+}
+
+.contrataciones__tab span {
+  min-width: 21px;
+  height: 21px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0 5px;
+
+  border-radius: 20px;
+
+  background: #fff1e8;
+  color: var(--color-primary);
+
+  font-size: 10px;
+}
+
+.contrataciones__lista {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 18px;
+}
+
+.contratacion-card {
+  display: flex;
+  flex-direction: column;
+
+  padding: 22px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background: var(--color-white);
+
+  box-shadow: var(--shadow-soft);
+}
+
+.contratacion-card__superior {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.contratacion-card__categoria {
+  color: var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.contratacion-card__estado {
+  padding: 5px 9px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.contratacion-card__estado--en_proceso {
+  background: #fff1e8;
+  color: var(--color-primary);
+}
+
+.contratacion-card__estado--finalizada {
+  background: #eaf4f1;
+  color: var(--color-secondary);
+}
+
+.contratacion-card__estado--cancelada {
+  background: #fff1ed;
+  color: #a4432f;
+}
+
+.contratacion-card h2 {
+  margin: 15px 0 8px;
+
+  color: var(--color-text);
+
+  font-size: 19px;
+}
+
+.contratacion-card__descripcion {
+  margin: 0;
+
+  color: var(--color-text-soft);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.contratacion-card__datos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 10px;
+
+  margin-top: 19px;
+}
+
+.contratacion-card__datos > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 11px;
+
+  border-radius: 11px;
+
+  background: #fcf9f5;
+}
+
+.contratacion-card__datos svg {
+  flex-shrink: 0;
+
+  color: var(--color-primary);
+}
+
+.contratacion-card__datos span,
+.contratacion-card__datos small,
+.contratacion-card__datos strong {
+  display: block;
+}
+
+.contratacion-card__datos small {
+  color: var(--color-text-soft);
+
+  font-size: 9px;
+}
+
+.contratacion-card__datos strong {
+  margin-top: 2px;
+
+  color: var(--color-text);
+
+  font-size: 11px;
+}
+
+.contratacion-card__abrir {
+  width: 100%;
+  min-height: 42px;
+
+  margin-top: 20px;
+
+  border: 0;
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  background: var(--color-primary);
+  color: white;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.contrataciones__estado,
+.contrataciones__error,
+.contrataciones__vacio {
+  padding: 40px;
+
+  border-radius: 17px;
+
+  background: var(--color-white);
+
+  text-align: center;
+}
+
+.contrataciones__error {
+  color: #a4432f;
+}
+
+.contrataciones__vacio svg {
+  color: var(--color-primary);
+}
+
+.contrataciones__vacio h2 {
+  color: var(--color-text);
+}
+
+.contrataciones__vacio p {
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 700px) {
+  .contrataciones__lista {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .contratacion-card__datos {
+    grid-template-columns: 1fr;
+  }
+}

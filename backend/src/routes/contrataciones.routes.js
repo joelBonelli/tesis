@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   obtenerMisContrataciones,
+  obtenerContratacionPorId,
   finalizarContratacion,
   calificarContratacion,
   cancelarContratacion,
@@ -23,6 +24,13 @@ router.get(
   autenticar,
   autorizarRoles("CLIENTE", "TRABAJADOR"),
   obtenerMisContrataciones
+);
+
+router.get(
+  "/:id",
+  autenticar,
+  autorizarRoles("CLIENTE", "TRABAJADOR"),
+  obtenerContratacionPorId
 );
 
 router.patch(

@@ -1,0 +1,411 @@
+.detalle-contratacion {
+  min-height: calc(100vh - 82px);
+
+  padding: 50px 0 70px;
+
+  background: var(--color-bg);
+}
+
+.detalle-contratacion__contenido {
+  width: min(1050px, calc(100% - 48px));
+
+  margin: 0 auto;
+}
+
+.detalle-contratacion__volver {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 25px;
+  padding: 0;
+
+  border: 0;
+
+  cursor: pointer;
+
+  background: transparent;
+  color: var(--color-text-soft);
+
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.detalle-contratacion__principal,
+.detalle-contratacion__persona,
+.detalle-contratacion__propuesta,
+.detalle-contratacion__acciones {
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  background: var(--color-white);
+
+  box-shadow: var(--shadow-soft);
+}
+
+.detalle-contratacion__principal {
+  padding: 28px;
+}
+
+.detalle-contratacion__cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.detalle-contratacion__categoria {
+  color: var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.detalle-contratacion__cabecera h1 {
+  margin: 6px 0 0;
+
+  color: var(--color-text);
+}
+
+.detalle-contratacion__estado {
+  height: fit-content;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.detalle-contratacion__estado--en_proceso {
+  background: #fff1e8;
+  color: var(--color-primary);
+}
+
+.detalle-contratacion__estado--finalizada {
+  background: #eaf4f1;
+  color: var(--color-secondary);
+}
+
+.detalle-contratacion__estado--cancelada {
+  background: #fff1ed;
+  color: #a4432f;
+}
+
+.detalle-contratacion__descripcion {
+  margin: 15px 0 0;
+
+  color: var(--color-text-soft);
+
+  line-height: 1.6;
+}
+
+.detalle-contratacion__datos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 11px;
+
+  margin-top: 22px;
+}
+
+.detalle-contratacion__datos > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 12px;
+
+  border-radius: 11px;
+
+  background: #fcf9f5;
+}
+
+.detalle-contratacion__datos svg {
+  flex-shrink: 0;
+
+  color: var(--color-primary);
+}
+
+.detalle-contratacion__datos span,
+.detalle-contratacion__datos small,
+.detalle-contratacion__datos strong {
+  display: block;
+}
+
+.detalle-contratacion__datos small {
+  color: var(--color-text-soft);
+
+  font-size: 9px;
+}
+
+.detalle-contratacion__datos strong {
+  margin-top: 2px;
+
+  color: var(--color-text);
+
+  font-size: 11px;
+}
+
+.detalle-contratacion__columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 18px;
+
+  margin-top: 18px;
+}
+
+.detalle-contratacion__persona,
+.detalle-contratacion__propuesta {
+  padding: 23px;
+}
+
+.detalle-contratacion__persona h2,
+.detalle-contratacion__propuesta h2 {
+  margin: 0 0 18px;
+
+  color: var(--color-text);
+
+  font-size: 17px;
+}
+
+.detalle-contratacion__persona-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detalle-contratacion__avatar {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #eaf4f1;
+  color: var(--color-secondary);
+
+  font-weight: 750;
+}
+
+.detalle-contratacion__avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.detalle-contratacion__nombre {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: var(--color-text);
+}
+
+.detalle-contratacion__nombre svg {
+  color: var(--color-secondary);
+}
+
+.detalle-contratacion__persona-info span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: var(--color-text-soft);
+
+  font-size: 11px;
+}
+
+.detalle-contratacion__reputacion {
+  display: flex;
+  gap: 14px;
+
+  margin-top: 16px;
+
+  color: var(--color-text-soft);
+
+  font-size: 11px;
+}
+
+.detalle-contratacion__reputacion span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.detalle-contratacion__reputacion svg {
+  color: var(--color-primary);
+}
+
+.detalle-contratacion__perfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 18px;
+
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detalle-contratacion__propuesta > p {
+  color: var(--color-text-soft);
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.detalle-contratacion__monto {
+  margin-top: 20px;
+  padding: 13px;
+
+  border-radius: 11px;
+
+  background: #fcf9f5;
+}
+
+.detalle-contratacion__monto span,
+.detalle-contratacion__monto strong {
+  display: block;
+}
+
+.detalle-contratacion__monto span {
+  color: var(--color-text-soft);
+
+  font-size: 10px;
+}
+
+.detalle-contratacion__monto strong {
+  margin-top: 4px;
+
+  color: var(--color-text);
+
+  font-size: 18px;
+}
+
+.detalle-contratacion__acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.detalle-contratacion__chat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-height: 42px;
+  padding: 0 15px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: var(--color-secondary);
+  color: white;
+
+  font-weight: 700;
+}
+
+.detalle-contratacion__chat:disabled {
+  opacity: 0.55;
+}
+
+.detalle-contratacion__acciones span {
+  color: var(--color-text-soft);
+
+  font-size: 11px;
+}
+
+.detalle-contratacion--estado {
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 800px) {
+  .detalle-contratacion__datos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .detalle-contratacion__columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .detalle-contratacion__cabecera {
+    flex-direction: column;
+  }
+
+  .detalle-contratacion__datos {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-contratacion__acciones {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.detalle-contratacion__finalizar,
+.detalle-contratacion__cancelar {
+  min-height: 42px;
+  padding: 0 15px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detalle-contratacion__finalizar {
+  border: 0;
+
+  background: var(--color-primary);
+  color: white;
+}
+
+.detalle-contratacion__cancelar {
+  border: 1px solid #c97a68;
+
+  background: transparent;
+  color: #a4432f;
+}
+
+.detalle-contratacion__finalizar:disabled,
+.detalle-contratacion__cancelar:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.detalle-contratacion__mensaje-exito,
+.detalle-contratacion__mensaje-error {
+  margin-top: 14px;
+  padding: 13px 15px;
+
+  border-radius: 11px;
+
+  font-size: 12px;
+}
+
+.detalle-contratacion__mensaje-exito {
+  background: #eaf4f1;
+  color: var(--color-secondary);
+}
+
+.detalle-contratacion__mensaje-error {
+  background: #fff1ed;
+  color: #a4432f;
+}

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Bell,
   BriefcaseBusiness,
+  Handshake,
 } from "lucide-react";
 
 import Header from "../components/Header.jsx";
@@ -155,6 +156,25 @@ function Dashboard() {
                 </div>
               </button>
             )}
+
+						{(esCliente || esTrabajador) && (
+							<button
+								className="dashboard-card"
+								onClick={() => navigate("/contrataciones")}
+							>
+								<div className="dashboard-card__icono">
+									<Handshake size={26} />
+								</div>
+
+								<div>
+									<h2>Contrataciones</h2>
+
+									<p>
+										Seguí tus trabajos contratados y servicios en curso.
+									</p>
+								</div>
+							</button>
+						)}
 
             <button 
               className="dashboard-card"

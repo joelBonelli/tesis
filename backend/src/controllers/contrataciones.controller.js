@@ -100,6 +100,131 @@ export async function obtenerMisContrataciones(req, res) {
   }
 }
 
+export async function obtenerContratacionPorId(req, res) {
+  try {
+    const usuarioId = req.usuario.usuarioId;
+    const contratacionId = Number(req.params.id);
+
+    if (!Number.isInteger(contratacionId)) {
+      return res.status(400).json({
+        message: "El ID de la contratación no es válido",
+      });
+    }
+
+    const contratacion = await prisma.contratacion.findUnique({
+      where: {
+        id: contratacionId,
+      },
+
+      select: {
+        id: true,
+        montoAcordado: true,
+        fechaContratacion: true,
+        fechaFinalizacion: true,
+        estado: true,
+
+        solicitud: {
+          select: {
+            id: true,
+            clienteId: true,
+            titulo: true,
+            descripcion: true,
+            zona: true,
+            estado: true,
+
+            categoria: {
+              select: {
+                id: true,
+                nombre: true,
+              },
+            },
+
+            cliente: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                fotoPerfilUrl: true,
+                estaVerificado: true,
+              },
+            },
+          },
+        },
+
+        propuesta: {
+          select: {
+            id: true,
+            monto: true,
+            mensaje: true,
+            diasEstimados: true,
+
+            perfilTrabajador: {
+              select: {
+                id: true,
+                tituloProfesional: true,
+                calificacion: true,
+                trabajosRealizados: true,
+
+                usuario: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    apellido: true,
+                    fotoPerfilUrl: true,
+                    estaVerificado: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        calificacion: {
+          select: {
+            id: true,
+            puntuacion: true,
+            comentario: true,
+            fechaCreacion: true,
+          },
+        },
+      },
+    });
+
+    if (!contratacion) {
+      return res.status(404).json({
+        message: "Contratación no encontrada",
+      });
+    }
+
+    const esCliente =
+      contratacion.solicitud.clienteId === usuarioId;
+
+    const esTrabajador =
+      contratacion.propuesta.perfilTrabajador.usuario.id ===
+      usuarioId;
+
+    if (!esCliente && !esTrabajador) {
+      return res.status(403).json({
+        message:
+          "No tiene permisos para acceder a esta contratación",
+      });
+    }
+
+    res.json({
+      contratacion,
+      participacion: esCliente
+        ? "CLIENTE"
+        : "TRABAJADOR",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al obtener la contratación",
+    });
+  }
+}
+
 
 export async function finalizarContratacion(req, res) {
   try {

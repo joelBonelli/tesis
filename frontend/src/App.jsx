@@ -14,6 +14,8 @@ import MisSolicitudes from "./pages/MisSolicitudes.jsx";
 import DetalleSolicitud from "./pages/DetalleSolicitud.jsx";
 import NuevaSolicitud from "./pages/NuevaSolicitud.jsx";
 import Trabajo from "./pages/Trabajo.jsx";
+import Contrataciones from "./pages/Contrataciones.jsx";
+import DetalleContratacion from "./pages/DetalleContratacion.jsx";
 
 
 function App() {
@@ -84,6 +86,22 @@ function App() {
           element={
             <RutaProtegida>
               <Trabajo />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/contrataciones"
+          element={
+            <RutaProtegida>
+              <Contrataciones />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/contrataciones/:id"
+          element={
+            <RutaProtegida>
+              <DetalleContratacion />
             </RutaProtegida>
           }
         />

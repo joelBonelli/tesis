@@ -19,6 +19,7 @@ import {
     obtenerSolicitudesCompatibles,
     crearPropuesta,
     obtenerMisPropuestas,
+    retirarPropuesta,
 } from "../services/solicitudesService.js";
 
 import "./Trabajo.css";
@@ -37,7 +38,7 @@ function Trabajo() {
         useState(null);
 
     const [enviando, setEnviando] = useState(false);
-
+    const [retirandoId, setRetirandoId] = useState(null);
     const [formulario, setFormulario] = useState({
         monto: "",
         diasEstimados: "",
@@ -150,6 +151,47 @@ function Trabajo() {
             setEnviando(false);
         }
     }
+
+    async function handleRetirar(propuesta) {
+        const confirmar = window.confirm(
+            "¿Querés retirar esta propuesta?"
+        );
+
+        if (!confirmar) {
+            return;
+        }
+
+        setError("");
+        setExito("");
+        setRetirandoId(propuesta.id);
+
+        try {
+            await retirarPropuesta(
+            propuesta.solicitud.id,
+            propuesta.id
+            );
+
+            setPropuestas((anteriores) =>
+            anteriores.map((item) =>
+                item.id === propuesta.id
+                ? {
+                    ...item,
+                    estado: "RETIRADA",
+                    }
+                : item
+            )
+            );
+
+            setExito(
+            "La propuesta fue retirada correctamente."
+            );
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setRetirandoId(null);
+        }
+    }
+
 
     function formatearFecha(fecha) {
         return new Date(fecha).toLocaleDateString(
@@ -414,6 +456,21 @@ function Trabajo() {
                                     <small>Tu mensaje</small>
 
                                     <p>{propuesta.mensaje}</p>
+                                    </div>
+                                )}
+
+                                {propuesta.estado === "PENDIENTE" && (
+                                    <div className="trabajo-propuesta-card__acciones">
+                                        <button
+                                        type="button"
+                                        className="trabajo-propuesta-card__retirar"
+                                        onClick={() => handleRetirar(propuesta)}
+                                        disabled={retirandoId === propuesta.id}
+                                        >
+                                        {retirandoId === propuesta.id
+                                            ? "Retirando..."
+                                            : "Retirar propuesta"}
+                                        </button>
                                     </div>
                                 )}
 
